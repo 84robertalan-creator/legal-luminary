@@ -20,7 +20,10 @@ export async function POST(req: NextRequest) {
 
     console.log(`\n=== OTP for ${phone} ===\n${otp}\n========================\n`);
 
-    return NextResponse.json({ message: 'OTP sent successfully' });
+return NextResponse.json({ 
+  message: 'OTP sent successfully', 
+  otp: otp          // ← This line shows OTP in browser for testing
+});
   } catch (error) {
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }

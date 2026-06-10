@@ -1,130 +1,336 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
   const router = useRouter();
-
   const [step, setStep] = useState<'details' | 'otp'>('details');
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+  });
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSendOTP = async () => {
     setLoading(true);
     setError('');
 
     try {
-      const res = await fetch('/api/auth/send-otp', {
+      const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
-
-      alert('OTP sent! Check your Terminal for the code');
-      setStep('otp');
-    } catch (err: any) {
-      setError(err.message);
+      if (response.ok) {
+        const data = await response.json();
+        setStep('otp');
+        
+        // ✅ Show OTP directly in alert for easy testing
+        alert(`OTP sent successfully!\n\nYour verification code is: ${data.otp}`);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to send OTP');
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleVerifyOTP = async () => {
     setLoading(true);
     setError('');
 
     try {
-      const res = await fetch('/api/auth/verify-otp', {
+      const response = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email, otp }),
+        body: JSON.stringify({
+          email: formData.email,
+          otp: otp,
+        }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || 'Invalid OTP');
-
-      alert('Account created! 7-day trial started.');
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message);
+      if (response.ok) {
+        // Save login state
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('userEmail', formData.email);
+        localStorage.setItem('userName', formData.name);
+        
+        alert('Registration successful! Redirecting to dashboard...');
+        router.push('/dashboard');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Invalid OTP');
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div style={{ width: '100%', maxWidth: '420px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ width: '56px', height: '56px', backgroundColor: '#1e40af', borderRadius: '16px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>⚖️</div>
-          <h1 style={{ color: 'white', fontSize: '28px', fontWeight: '700' }}>Create your account</h1>
-          <p style={{ color: '#94a3b8' }}>Start your 7-day free trial • Protected by phone verification</p>
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#0f172a', 
+      color: 'white',
+      padding: '40px 20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div style={{ 
+        maxWidth: '420px', 
+        width: '100%',
+        backgroundColor: '#1e293b',
+        borderRadius: '16px',
+        padding: '40px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+      }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+          <img 
+            src="/logo.png" 
+            alt="Legal Luminary" 
+            style={{ height: '60px', marginBottom: '10px' }} 
+          />
+          <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#3b82f6' }}>
+            Legal Luminary
+          </h1>
+          <p style={{ color: '#94a3b8', marginTop: '8px' }}>
+            Create your account
+          </p>
         </div>
 
-        <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '32px', boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.25)' }}>
-          {error && <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '12px', borderRadius: '12px', marginBottom: '20px' }}>{error}</div>}
+        {step === 'details' ? (
+          // Step 1: Registration Form
+          <div>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                Full Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Enter your full name"
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '8px',
+                  border: '1px solid #475569',
+                  backgroundColor: '#0f172a',
+                  color: 'white',
+                  fontSize: '16px'
+                }}
+              />
+            </div>
 
-          {step === 'details' ? (
-            <form onSubmit={handleSendOTP}>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#334155' }}>Full Name</label>
-                <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={{ width: '100%', padding: '14px', border: '1.5px solid #cbd5e1', borderRadius: '12px' }} placeholder="Rahul Sharma" />
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                Email Address
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="you@example.com"
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '8px',
+                  border: '1px solid #475569',
+                  backgroundColor: '#0f172a',
+                  color: 'white',
+                  fontSize: '16px'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                Phone Number (with country code)
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="+91 9876543210"
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '8px',
+                  border: '1px solid #475569',
+                  backgroundColor: '#0f172a',
+                  color: 'white',
+                  fontSize: '16px'
+                }}
+              />
+              <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
+                Used for OTP verification (prevents trial abuse)
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '30px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                Create Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="Create a strong password"
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '8px',
+                  border: '1px solid #475569',
+                  backgroundColor: '#0f172a',
+                  color: 'white',
+                  fontSize: '16px'
+                }}
+              />
+            </div>
+
+            {error && (
+              <div style={{ 
+                backgroundColor: '#7f1d1d', 
+                color: '#fca5a5', 
+                padding: '12px', 
+                borderRadius: '8px', 
+                marginBottom: '20px',
+                fontSize: '14px'
+              }}>
+                {error}
               </div>
+            )}
 
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#334155' }}>Email Address</label>
-                <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} style={{ width: '100%', padding: '14px', border: '1.5px solid #cbd5e1', borderRadius: '12px' }} placeholder="you@lawstudent.in" />
+            <button
+              onClick={handleSendOTP}
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '16px',
+                backgroundColor: loading ? '#475569' : '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {loading ? 'Sending OTP...' : 'Send OTP & Create Account'}
+            </button>
+
+            <p style={{ textAlign: 'center', marginTop: '20px', color: '#64748b', fontSize: '14px' }}>
+              Already have an account?{' '}
+              <a href="/login" style={{ color: '#3b82f6', textDecoration: 'underline' }}>
+                Login here
+              </a>
+            </p>
+          </div>
+        ) : (
+          // Step 2: OTP Verification
+          <div>
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+              <h2 style={{ fontSize: '22px', marginBottom: '10px' }}>Verify Your Phone</h2>
+              <p style={{ color: '#94a3b8' }}>
+                Enter the 6-digit code sent to<br />
+                <strong>{formData.phone}</strong>
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '30px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                Enter OTP
+              </label>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                placeholder="123456"
+                maxLength={6}
+                style={{
+                  width: '100%',
+                  padding: '18px',
+                  borderRadius: '10px',
+                  border: '1px solid #475569',
+                  backgroundColor: '#0f172a',
+                  color: 'white',
+                  fontSize: '24px',
+                  textAlign: 'center',
+                  letterSpacing: '8px'
+                }}
+              />
+            </div>
+
+            {error && (
+              <div style={{ 
+                backgroundColor: '#7f1d1d', 
+                color: '#fca5a5', 
+                padding: '12px', 
+                borderRadius: '8px', 
+                marginBottom: '20px',
+                fontSize: '14px'
+              }}>
+                {error}
               </div>
+            )}
 
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#334155' }}>Phone Number (with country code)</label>
-                <input type="tel" required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} style={{ width: '100%', padding: '14px', border: '1.5px solid #cbd5e1', borderRadius: '12px' }} placeholder="+91 98765 43210" />
-                <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>Used for OTP verification (prevents trial abuse)</p>
-              </div>
+            <button
+              onClick={handleVerifyOTP}
+              disabled={loading || otp.length !== 6}
+              style={{
+                width: '100%',
+                padding: '16px',
+                backgroundColor: (loading || otp.length !== 6) ? '#475569' : '#22c55e',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: (loading || otp.length !== 6) ? 'not-allowed' : 'pointer',
+                marginBottom: '15px'
+              }}
+            >
+              {loading ? 'Verifying...' : 'Verify & Create Account'}
+            </button>
 
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#334155' }}>Create Password</label>
-                <input type="password" required minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} style={{ width: '100%', padding: '14px', border: '1.5px solid #cbd5e1', borderRadius: '12px' }} placeholder="Minimum 6 characters" />
-              </div>
-
-              <button type="submit" disabled={loading} style={{ width: '100%', backgroundColor: '#1e40af', color: 'white', padding: '16px', borderRadius: '12px', fontSize: '17px', fontWeight: '700', border: 'none' }}>
-                {loading ? 'Sending OTP...' : 'Send OTP →'}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOTP}>
-              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <div style={{ fontSize: '40px', marginBottom: '12px' }}>📱</div>
-                <h3 style={{ fontSize: '22px', fontWeight: '700' }}>Verify your phone</h3>
-                <p style={{ color: '#64748b' }}>Enter the 6-digit OTP sent to <strong>{form.phone}</strong></p>
-              </div>
-
-              <input type="text" maxLength={6} required value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} style={{ width: '100%', textAlign: 'center', fontSize: '28px', letterSpacing: '12px', padding: '16px', border: '2px solid #cbd5e1', borderRadius: '16px', marginBottom: '24px' }} placeholder="123456" />
-
-              <button type="submit" disabled={loading || otp.length !== 6} style={{ width: '100%', backgroundColor: '#1e40af', color: 'white', padding: '16px', borderRadius: '12px', fontSize: '17px', fontWeight: '700', border: 'none', marginBottom: '12px' }}>
-                {loading ? 'Verifying...' : 'Verify & Start 7-Day Trial'}
-              </button>
-
-              <button type="button" onClick={() => setStep('details')} style={{ width: '100%', backgroundColor: 'transparent', color: '#64748b', padding: '12px', border: 'none' }}>
-                ← Change phone number
-              </button>
-            </form>
-          )}
-        </div>
-
-        <p style={{ textAlign: 'center', marginTop: '24px', color: '#94a3b8' }}>
-          Already have an account? <a href="/login" style={{ color: '#3b82f6', textDecoration: 'none' }}>Sign in</a>
-        </p>
+            <button
+              onClick={() => setStep('details')}
+              style={{
+                width: '100%',
+                padding: '14px',
+                backgroundColor: 'transparent',
+                color: '#94a3b8',
+                border: '1px solid #475569',
+                borderRadius: '10px',
+                fontSize: '15px',
+                cursor: 'pointer'
+              }}
+            >
+              ← Go Back
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
