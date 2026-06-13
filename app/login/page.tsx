@@ -1,74 +1,118 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async () => {
     setLoading(true);
     setError('');
 
+    // Simulate login (you can connect to real backend later)
     setTimeout(() => {
-      if (form.email && form.password.length >= 4) {
+      if (email && password) {
         localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('userEmail', form.email);
+        localStorage.setItem('userEmail', email);
+        alert('Login successful!');
         router.push('/dashboard');
       } else {
-        setError('Please enter valid email and password (minimum 4 characters)');
+        setError('Please enter email and password');
       }
       setLoading(false);
-    }, 600);
+    }, 800);
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div style={{ width: '100%', maxWidth: '420px' }}>
-        
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#0f172a', 
+      color: 'white',
+      padding: '20px 16px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div style={{ 
+        maxWidth: '420px', 
+        width: '100%',
+        backgroundColor: '#1e293b',
+        borderRadius: '20px',
+        padding: '32px 24px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+      }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-         <img 
-  src="/logo.png" 
-  alt="Legal Luminary" 
-  style={{ 
-    width: '56px', 
-    height: '56px', 
-    borderRadius: '16px', 
-    margin: '0 auto 16px', 
-    objectFit: 'contain' 
-  }} 
-/>
-          <h1 style={{ color: 'white', fontSize: '28px', fontWeight: '700' }}>Welcome back</h1>
-          <p style={{ color: '#94a3b8' }}>Sign in to continue your preparation</p>
+          <img src="/logo.png" alt="Logo" style={{ height: '55px', marginBottom: '12px' }} />
+          <h1 style={{ fontSize: '26px', fontWeight: 'bold', color: '#3b82f6' }}>Welcome Back</h1>
+          <p style={{ color: '#94a3b8', marginTop: '8px' }}>Login to continue your preparation</p>
         </div>
 
-        <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '32px', boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.25)' }}>
-          
-          {error && <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '12px', borderRadius: '12px', marginBottom: '20px', fontSize: '14px' }}>{error}</div>}
-
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#334155' }}>Email Address</label>
-              <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} style={{ width: '100%', padding: '14px', border: '1.5px solid #cbd5e1', borderRadius: '12px', fontSize: '16px' }} placeholder="you@lawstudent.in" />
-            </div>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#334155' }}>Password</label>
-              <input type="password" required minLength={4} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} style={{ width: '100%', padding: '14px', border: '1.5px solid #cbd5e1', borderRadius: '12px', fontSize: '16px' }} placeholder="Enter your password" />
-            </div>
-
-            <button type="submit" disabled={loading} style={{ width: '100%', backgroundColor: '#1e40af', color: 'white', padding: '16px', borderRadius: '12px', fontSize: '17px', fontWeight: '700', border: 'none', cursor: loading ? 'not-allowed' : 'pointer' }}>
-              {loading ? 'Signing in...' : 'Sign In →'}
-            </button>
-          </form>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>Email Address</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            style={{
+              width: '100%',
+              padding: '16px 18px',
+              borderRadius: '12px',
+              border: '1px solid #475569',
+              backgroundColor: '#0f172a',
+              color: 'white',
+              fontSize: '17px'
+            }}
+          />
         </div>
 
-        <p style={{ textAlign: 'center', marginTop: '24px', color: '#94a3b8' }}>
-          New here? <a href="/register" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Create free account</a>
+        <div style={{ marginBottom: '28px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '15px' }}>Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+            style={{
+              width: '100%',
+              padding: '16px 18px',
+              borderRadius: '12px',
+              border: '1px solid #475569',
+              backgroundColor: '#0f172a',
+              color: 'white',
+              fontSize: '17px'
+            }}
+          />
+        </div>
+
+        {error && <div style={{ color: '#ef4444', marginBottom: '16px', textAlign: 'center' }}>{error}</div>}
+
+        <button
+          onClick={handleLogin}
+          disabled={loading}
+          style={{
+            width: '100%',
+            padding: '18px',
+            backgroundColor: loading ? '#475569' : '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '14px',
+            fontSize: '17px',
+            fontWeight: '600',
+            marginBottom: '20px'
+          }}
+        >
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
+
+        <p style={{ textAlign: 'center', color: '#64748b' }}>
+          Don't have an account?{' '}
+          <a href="/register" style={{ color: '#3b82f6' }}>Sign up here</a>
         </p>
       </div>
     </div>
