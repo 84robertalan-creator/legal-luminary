@@ -12,37 +12,45 @@ export default function JCJQuiz() {
   const [score, setScore] = useState(0);
   const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
 
-  // Big Pool of Questions (Add more as needed)
+  // Login Protection
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+      router.push('/login');
+    }
+  }, [router]);
+
+  // Big Pool of Questions (Random 20 every time)
   const questionPool = [
-    { question: "Which Article deals with Equality before Law?", options: ["Article 14", "Article 19", "Article 21", "Article 32"], correct: 0 },
-    { question: "Meaning of 'Consideration' under Contract Act?", options: ["Promise", "Something in return", "Agreement", "Offer"], correct: 1 },
-    { question: "Which Section defines 'Coercion'?", options: ["Section 15", "Section 16", "Section 17", "Section 18"], correct: 0 },
+    { question: "Which Article of the Indian Constitution deals with Equality before Law?", options: ["Article 14", "Article 19", "Article 21", "Article 32"], correct: 0 },
+    { question: "What is the meaning of 'Consideration' under Indian Contract Act, 1872?", options: ["Promise", "Something in return", "Agreement", "Offer"], correct: 1 },
+    { question: "Which Section of Indian Contract Act defines 'Coercion'?", options: ["Section 15", "Section 16", "Section 17", "Section 18"], correct: 0 },
     { question: "A contract without consideration is", options: ["Valid", "Void", "Voidable", "Illegal"], correct: 1 },
-    { question: "Indian Contract Act came into force on", options: ["1st Sep 1872", "1st Oct 1872", "1st Jan 1872", "15th Aug 1872"], correct: 0 },
-    { question: "Right to Life and Personal Liberty is under", options: ["Article 14", "Article 19", "Article 21", "Article 32"], correct: 2 },
+    { question: "The Indian Contract Act, 1872 came into force on", options: ["1st September 1872", "1st October 1872", "1st January 1872", "15th August 1872"], correct: 0 },
+    { question: "Which Article provides for Right to Life and Personal Liberty?", options: ["Article 14", "Article 19", "Article 21", "Article 32"], correct: 2 },
     { question: "Agreement without free consent is", options: ["Valid", "Void", "Voidable", "Illegal"], correct: 2 },
-    { question: "Who is competent to contract?", options: ["Minor", "Person of unsound mind", "Major of sound mind", "All"], correct: 2 },
+    { question: "Who is competent to contract?", options: ["Minor", "Person of unsound mind", "Major of sound mind", "All of the above"], correct: 2 },
     { question: "Which is not a mode of discharge of contract?", options: ["Performance", "Breach", "Impossibility", "Acceptance"], correct: 3 },
-    { question: "Fundamental Rights are in which Part?", options: ["Part III", "Part IV", "Part V", "Part VI"], correct: 0 },
+    { question: "Fundamental Rights are guaranteed under which part of the Constitution?", options: ["Part III", "Part IV", "Part V", "Part VI"], correct: 0 },
     { question: "Offer + Acceptance =", options: ["Contract", "Agreement", "Promise", "Consideration"], correct: 1 },
-    { question: "Supreme Court established under Article", options: ["124", "131", "32", "226"], correct: 0 },
+    { question: "The Supreme Court of India is established under which Article?", options: ["Article 124", "Article 131", "Article 32", "Article 226"], correct: 0 },
     { question: "A minor's agreement is", options: ["Valid", "Void", "Voidable", "Enforceable"], correct: 1 },
-    { question: "Right to Constitutional Remedies is", options: ["Article 19", "Article 21", "Article 32", "Article 14"], correct: 2 },
-    { question: "Undue Influence is under Section", options: ["15", "16", "17", "19"], correct: 1 },
-    { question: "Preamble amended in which year?", options: ["1950", "1976", "1992", "2002"], correct: 1 },
+    { question: "Right to Constitutional Remedies is under", options: ["Article 19", "Article 21", "Article 32", "Article 14"], correct: 2 },
+    { question: "Which Section deals with 'Undue Influence'?", options: ["Section 15", "Section 16", "Section 17", "Section 19"], correct: 1 },
+    { question: "The Preamble of Indian Constitution was amended in which year?", options: ["1950", "1976", "1992", "2002"], correct: 1 },
     { question: "Breach of contract gives right to", options: ["Damages", "Specific Performance", "Both", "None"], correct: 2 },
-    { question: "Directive Principles are in", options: ["Part III", "Part IV", "Part V", "Part VI"], correct: 1 },
-    { question: "Free consent means free from", options: ["Coercion", "Undue Influence", "Fraud", "All"], correct: 3 },
-    { question: "Judicial Review borrowed from", options: ["UK", "USA", "Ireland", "Canada"], correct: 1 },
-    // Add more questions here if you want a bigger pool
+    { question: "Directive Principles of State Policy are in", options: ["Part III", "Part IV", "Part V", "Part VI"], correct: 1 },
+    { question: "Free consent means consent free from", options: ["Coercion", "Undue Influence", "Fraud", "All of the above"], correct: 3 },
+    { question: "Judicial Review in India is borrowed from", options: ["UK", "USA", "Ireland", "Canada"], correct: 1 }
   ];
 
-  // Select 20 random questions when quiz starts
+  // Select random 20 questions when component loads
   useEffect(() => {
     const shuffled = [...questionPool].sort(() => 0.5 - Math.random());
     setQuizQuestions(shuffled.slice(0, 20));
   }, []);
 
+  // Timer
   useEffect(() => {
     if (quizQuestions.length === 0) return;
     const timer = setInterval(() => {
@@ -73,24 +81,30 @@ export default function JCJQuiz() {
   if (showResult) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: 'white', padding: '20px', textAlign: 'center' }}>
-        <h1>Quiz Completed!</h1>
+        <h1 style={{ fontSize: '28px', marginBottom: '20px' }}>Quiz Completed!</h1>
         <div style={{ fontSize: '52px', fontWeight: 'bold', color: '#22c55e', margin: '20px 0' }}>
           {score} / 20
         </div>
-        <button onClick={() => router.push('/dashboard')} style={{ padding: '16px 32px', backgroundColor: '#3b82f6', borderRadius: '12px', fontSize: '18px' }}>
+        <button 
+          onClick={() => router.push('/dashboard')} 
+          style={{ marginTop: '30px', padding: '16px 32px', fontSize: '18px', backgroundColor: '#3b82f6', borderRadius: '12px' }}
+        >
           Back to Dashboard
         </button>
       </div>
     );
   }
 
-  if (quizQuestions.length === 0) return <div>Loading questions...</div>;
+  if (quizQuestions.length === 0) {
+    return <div style={{ padding: '40px', textAlign: 'center' }}>Loading questions...</div>;
+  }
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: 'white', padding: '12px' }}>
       <div style={{ maxWidth: '520px', margin: '0 auto' }}>
+        
         <div style={{ textAlign: 'right', marginBottom: '12px', fontSize: '15px', color: timeLeft < 300 ? '#ef4444' : '#86efac' }}>
-          Time: {Math.floor(timeLeft/60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+          Time Left: {Math.floor(timeLeft/60)}:{(timeLeft % 60).toString().padStart(2, '0')}
         </div>
 
         <div style={{ backgroundColor: '#1e293b', padding: '24px', borderRadius: '16px', marginBottom: '20px' }}>
@@ -120,16 +134,26 @@ export default function JCJQuiz() {
         </div>
 
         <div style={{ display: 'flex', gap: '12px', position: 'sticky', bottom: '12px' }}>
-          <button onClick={() => setCurrentQuestion(p => Math.max(0, p-1))} disabled={currentQuestion === 0}
-            style={{ flex: 1, padding: '16px', backgroundColor: '#475569', borderRadius: '12px' }}>
+          <button
+            onClick={() => setCurrentQuestion(p => Math.max(0, p - 1))}
+            disabled={currentQuestion === 0}
+            style={{ flex: 1, padding: '16px', backgroundColor: '#475569', borderRadius: '12px', fontSize: '16px' }}
+          >
             Previous
           </button>
+
           {currentQuestion === 19 ? (
-            <button onClick={handleSubmit} style={{ flex: 1, padding: '16px', backgroundColor: '#22c55e', borderRadius: '12px', fontWeight: '600' }}>
+            <button 
+              onClick={handleSubmit} 
+              style={{ flex: 1, padding: '16px', backgroundColor: '#22c55e', borderRadius: '12px', fontSize: '16px', fontWeight: '600' }}
+            >
               Submit Test
             </button>
           ) : (
-            <button onClick={() => setCurrentQuestion(p => p + 1)} style={{ flex: 1, padding: '16px', backgroundColor: '#3b82f6', borderRadius: '12px' }}>
+            <button 
+              onClick={() => setCurrentQuestion(p => p + 1)} 
+              style={{ flex: 1, padding: '16px', backgroundColor: '#3b82f6', borderRadius: '12px', fontSize: '16px' }}
+            >
               Next
             </button>
           )}
